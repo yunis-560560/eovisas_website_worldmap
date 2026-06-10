@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Travel Planner Calculator & Vector Map</title>
+    <!-- Google Fonts: Inter & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom Style Sheet -->
+    <link rel="stylesheet" href="style.css?v=1.0.3">
+    <!-- Leaflet.js Library -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Main Map Area (Left) -->
+        <main class="map-section">
+            <div class="map-header">
+                <div class="header-main-row">
+                    <h1>Interactive Travel Route Map</h1>
+
+                </div>
+                <p>Click any country pin or airport node on the map to calculate flight and visa requirements</p>
+            </div>
+
+            <div class="map-wrapper" id="map-wrapper">
+                <!-- SVG map element created dynamically by D3 -->
+                <div class="map-controls">
+                    <button id="zoom-in" title="Zoom In"><i class="fa-solid fa-plus"></i></button>
+                    <button id="zoom-out" title="Zoom Out"><i class="fa-solid fa-minus"></i></button>
+                    <button id="zoom-reset" title="Reset View"><i class="fa-solid fa-arrows-to-eye"></i></button>
+                </div>
+                <div class="map-legend">
+                    <div class="legend-item"><span class="legend-dot origin"></span>Origin</div>
+                    <div class="legend-item"><span class="legend-dot destination"></span>Destination</div>
+                    <div class="legend-item"><span class="legend-line"></span>Flight Path</div>
+                </div>
+                <!-- Interactive tooltip -->
+                <div id="map-tooltip" class="tooltip hidden"></div>
+                <!-- Floating help overlay -->
+                <div class="map-floating-help" id="map-floating-help">
+                    <i class="fa-solid fa-circle-info"></i> Click any country on the map to calculate route
+                </div>
+            </div>
+        </main>
+
+        <!-- Travel Planner Sidebar Card (Right) -->
+        <aside class="sidebar-section">
+            <div class="card planner-card">
+                <div class="card-header">
+                    <div class="header-title-row">
+                        <i class="fa-solid fa-plane-departure plane-header-icon"></i>
+                        <h2>Travel Planner Calculator</h2>
+                    </div>
+                    <p class="subtitle">Select your origin in India and destination country to calculate visa status and
+                        flight parameters.</p>
+                </div>
+
+                <div class="card-body">
+                    <!-- Origin Selector -->
+                    <div class="form-group">
+                        <label class="form-label">FROM (ORIGIN IN INDIA)</label>
+                        <div class="custom-select-container" id="origin-select-container">
+                            <button class="custom-select-trigger" id="origin-trigger">
+                                <span class="trigger-icon"><i class="fa-solid fa-location-dot"></i></span>
+                                <span class="trigger-text">Select origin state...</span>
+                                <span class="chevron"><i class="fa-solid fa-chevron-down"></i></span>
+                            </button>
+                            <div class="custom-select-dropdown hidden" id="origin-dropdown">
+                                <div class="search-box">
+                                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                                    <input type="text" placeholder="Search origin state..." class="search-input"
+                                        id="origin-search" autocomplete="off">
+                                </div>
+                                <ul class="options-list" id="origin-options">
+                                    <!-- Populated dynamically via JS -->
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Destination Selector -->
+                    <div class="form-group">
+                        <label class="form-label">TO (DESTINATION COUNTRY)</label>
+                        <div class="custom-select-container" id="destination-select-container">
+                            <button class="custom-select-trigger" id="destination-trigger">
+                                <span class="trigger-icon"><i class="fa-solid fa-globe"></i></span>
+                                <span class="trigger-text">Select destination country...</span>
+                                <span class="chevron"><i class="fa-solid fa-chevron-down"></i></span>
+                            </button>
+                            <div class="custom-select-dropdown hidden" id="destination-dropdown">
+                                <div class="search-box">
+                                    <i class="fa-solid fa-magnifying-glass search-icon"></i>
+                                    <input type="text" placeholder="Search destination country..." class="search-input"
+                                        id="destination-search" autocomplete="off">
+                                </div>
+                                <ul class="options-list" id="destination-options">
+                                    <!-- Populated dynamically via JS -->
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Visual Flight Route Path Indicator (rendered when route selected) -->
+                    <div class="route-indicator-container hidden" id="route-indicator">
+                        <div class="route-indicator">
+                            <span class="route-code" id="route-origin-code">HYD</span>
+                            <div class="route-line-animation">
+                                <div class="dot-line"></div>
+                                <i class="fa-solid fa-plane plane-icon-anim"></i>
+                            </div>
+                            <span class="route-code" id="route-dest-code">DXB</span>
+                        </div>
+                    </div>
+
+                    <!-- Stats Detail Grid -->
+                    <div class="stats-grid">
+                        <!-- Flight Time -->
+                        <div class="stat-card">
+                            <div class="stat-icon-wrapper blue-icon">
+                                <i class="fa-regular fa-clock"></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-label">FLIGHT TIME</span>
+                                <span class="stat-value" id="val-flight-time">-</span>
+                            </div>
+                        </div>
+
+                        <!-- Visa Process Time -->
+                        <div class="stat-card">
+                            <div class="stat-icon-wrapper purple-icon">
+                                <i class="fa-solid fa-bolt"></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-label">VISA PROCESS</span>
+                                <span class="stat-value" id="val-visa-process">-</span>
+                            </div>
+                        </div>
+
+                        <!-- Visa Type -->
+                        <div class="stat-card">
+                            <div class="stat-icon-wrapper green-icon">
+                                <i class="fa-regular fa-id-card"></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-label">VISA TYPE</span>
+                                <span class="stat-value" id="val-visa-type">-</span>
+                            </div>
+                        </div>
+
+                        <!-- Estimated Landing -->
+                        <div class="stat-card">
+                            <div class="stat-icon-wrapper orange-icon">
+                                <i class="fa-regular fa-calendar-check"></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-label">ESTIMATED LANDING</span>
+                                <span class="stat-value" id="val-landing-date">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Callout -->
+                    <div class="calculator-callout" id="calculator-callout">
+                        <i class="fa-solid fa-circle-info"></i>
+                        <span>Select origin & destination or click any country on the map to display instant
+                            statistics.</span>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="action-buttons-container">
+                        <a href="#" class="btn btn-primary hidden" id="apply-visa-btn" target="_blank">
+                            <i class="fa-solid fa-arrow-up-right-from-square"></i> Apply Visa Online
+                        </a>
+                        <button class="btn btn-secondary hidden" id="reset-route-btn">
+                            <i class="fa-solid fa-rotate-left"></i> Reset Route
+                        </button>
+                    </div>
+
+                    <!-- Company Logo -->
+                    <div class="company-logo-container">
+                        <img src="https://eo-visas.s3.ap-south-1.amazonaws.com/public/logos/1775369913_GI06RVIDVN_EO%20Logo%20New.png" alt="Explore Overseas" class="company-logo">
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Core App JS -->
+    <script src="database.js?v=1.0.4"></script>
+    <script src="app.js?v=1.0.4"></script>
+</body>
+
+</html>
+<!-- Core App JS -->
+<script src="database.js?v=1.0.3"></script>
+<script src="app.js?v=1.0.3"></script>
+</body>
+
+</html>
+<!-- Core App JS -->
+<script src="database.js?v=1.0.3"></script>
+<script src="app.js?v=1.0.3"></script>
+</body>
+
+</html>
