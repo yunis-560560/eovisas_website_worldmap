@@ -179,9 +179,11 @@ body {
     .map-header h1 {
         font-size: 1.35rem;
     }
+
     .map-header p {
         font-size: 0.8rem;
     }
+
     .map-wrapper {
         min-height: 380px;
     }
@@ -287,8 +289,9 @@ body {
     left: 1.5rem;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
-    z-index: 10;
+    gap: 0.75rem;
+    z-index: 1000;
+    transform: translateZ(10px);
 }
 
 .map-controls button {
@@ -325,6 +328,8 @@ body {
     right: 1.5rem;
     background: var(--bg-card);
     backdrop-filter: blur(8px);
+    z-index: 1000;
+    transform: translateZ(10px);
     border: 1px solid var(--bg-card-border);
     padding: 0.75rem 1rem;
     border-radius: 0.75rem;
@@ -651,7 +656,7 @@ body {
     height: 16px;
     object-fit: cover;
     border-radius: 3px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
     display: inline-block;
 }
 
@@ -734,24 +739,24 @@ body {
 @keyframes flightSlide {
     0% {
         left: 0%;
-        transform: rotate(90deg);
+        transform: rotate(45deg);
     }
 
     90% {
         left: 100%;
-        transform: rotate(90deg);
+        transform: rotate(45deg);
         opacity: 1;
     }
 
     91% {
         left: 100%;
-        transform: rotate(90deg);
+        transform: rotate(45deg);
         opacity: 0;
     }
 
     95% {
         left: 0%;
-        transform: rotate(90deg);
+        transform: rotate(45deg);
         opacity: 0;
     }
 
@@ -962,7 +967,8 @@ body {
     font-size: 0.65rem;
     font-weight: 700;
     background: rgba(99, 102, 241, 0.2);
-    color: #3730a3; /* Darker indigo for better contrast */
+    color: #3730a3;
+    /* Darker indigo for better contrast */
     margin-top: 0.25rem;
 }
 
@@ -1162,7 +1168,7 @@ body {
     height: 18.5px;
     object-fit: cover;
     border-radius: 3px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
 }
 
 .marker-text-content {
@@ -1425,4 +1431,23 @@ font-size: 0.7rem;
     padding: 0.65rem 1rem;
     font-size: 0.8rem;
 }
+}
+
+/* Self Hosted Map Overrides */
+.leaflet-container {
+    background-color: var(--map-sea) !important;
+}
+
+/* 3D Animation Effects */
+.arrive-ping {
+    animation: pingDest 0.75s ease-out;
+}
+@keyframes pingDest {
+    0% { transform: scale(1); filter: drop-shadow(0 0 0px var(--color-primary)); }
+    50% { transform: scale(1.1); filter: drop-shadow(0 0 15px var(--color-primary)); }
+    100% { transform: scale(1); filter: drop-shadow(0 0 0px var(--color-primary)); }
+}
+
+.flight-path-glow, .flight-path {
+    transition: stroke-dashoffset 0.1s linear;
 }
